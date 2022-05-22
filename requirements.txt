@@ -1,6 +1,7 @@
-gym==0.19.0
+mujoco-py
 gym[all]
 gym[atari,accept-rom-license]
+gym==0.19.0
 matplotlib
 selenium
 webdriver-manager
@@ -13,3 +14,4 @@ opencv-python
 torchsummary
 pandas
 numpy
+tensorboard
