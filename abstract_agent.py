@@ -1,9 +1,8 @@
-import torch #
+import numpy as np
+import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
-
 from tqdm.notebook import tqdm
-import numpy as np
 
 from replay_memory import ReplayMemory, Transition
 

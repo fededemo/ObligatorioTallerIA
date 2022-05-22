@@ -1,10 +1,12 @@
-from gym.wrappers import Monitor
-from IPython.display import HTML
-from IPython import display as ipythondisplay
-import uuid
-import io
-import glob
 import base64
+import glob
+import io
+import uuid
+
+from gym.wrappers import Monitor
+from IPython import display as ipythondisplay
+from IPython.display import HTML
+
 
 def show_video():
     """
@@ -32,10 +34,12 @@ def wrap_env(env):
     env = Monitor(env, './video/' + str(uuid.uuid4()), force=True)
     return env
 
-import cv2
-import numpy as np
 import collections
+
+import cv2
 import gym.spaces
+import numpy as np
+
 
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env=None):

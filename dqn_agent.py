@@ -1,11 +1,13 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from replay_memory import ReplayMemory, Transition
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.notebook import tqdm
-import numpy as np
+
 from abstract_agent import Agent
+from replay_memory import ReplayMemory, Transition
+
 
 class DQNAgent(Agent):
     def __init__(self, gym_env, model, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block):
