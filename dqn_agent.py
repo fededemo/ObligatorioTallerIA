@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.notebook import tqdm
 
@@ -10,24 +11,36 @@ from replay_memory import ReplayMemory, Transition
 
 
 class DQNAgent(Agent):
-    def __init__(self, gym_env, model, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block):
-        super().__init__(gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block)
+    policy_net: nn.Module
+    loss_function: nn.Module
+    optimizer: torch.optim.Optimizer
+
+    def __init__(self, gym_env, model, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma,
+                 epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block):
+        super().__init__(gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i,
+                         epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block)
+
         # Asignar el modelo al agente (y enviarlo al dispositivo adecuado)
-        # self.policy_net = ?
+        self.policy_net = model
+        self.policy_net.to(self.device)
 
         # Asignar una función de costo (MSE)  (y enviarla al dispositivo adecuado)
-        # self.loss_function = ?
+        self.loss_function = nn.MSELoss()
+        self.loss_function.to(self.device)
 
         # Asignar un optimizador (Adam)
-        # self.optimizer = ?
-        
-        
-    
-    def select_action(self, state, current_steps, train=True):
-      # Implementar. Seleccionando acciones epsilongreedy-mente si estamos entranando y completamente greedy en otro caso.
+        self.optimizer = Adam(self.policy_net.parameters(), lr=self.learning_rate)
+
+    def _predict_action(self, state):
+        with torch.no_grad():
+            state_t = self.state_processing_function(state).to(self.device)
+            state_t = state_t.unsqueeze(0)
+            action_t = torch.argmax(self.policy_net(state_t), dim=1)
+            action = action_t.item()
+        return action
 
     def update_weights(self):
-      if len(self.memory) > self.batch_size:
+        if len(self.memory) > self.batch_size:
             # Resetear gradientes
 
             # Obtener un minibatch de la memoria. Resultando en tensores de estados, acciones, recompensas, flags de terminacion y siguentes estados. 
@@ -50,4 +63,4 @@ class DQNAgent(Agent):
             target = ?
 
             # Compute el costo y actualice los pesos.
-            # En Pytorch la funcion de costo se llaman con (predicciones, objetivos) en ese orden.
+            # En Pytorch la función de costo se llaman con (predicciones, objetivos) en ese orden.

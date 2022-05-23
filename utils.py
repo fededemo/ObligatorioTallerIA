@@ -1,8 +1,13 @@
 import base64
+import collections
 import glob
 import io
 import uuid
 
+import cv2
+import gym.spaces
+import numpy as np
+import torch
 from gym.wrappers import Monitor
 from IPython import display as ipythondisplay
 from IPython.display import HTML
@@ -22,23 +27,17 @@ def show_video():
                     loop controls style="height: 400px;">
                     <source src="data:video/mp4;base64,{0}" type="video/mp4" />
                  </video>'''.format(encoded.decode('ascii'))))
-    else: 
+    else:
         print("Could not find video")
-    
+
 
 def wrap_env(env):
     """
-    Wrapper del ambiente donde definimos un Monitor que guarda la visualizacion como un archivo de video.
+    Wrapper del ambiente donde definimos un Monitor que guarda la visualización como un archivo de video.
     """
 
     env = Monitor(env, './video/' + str(uuid.uuid4()), force=True)
     return env
-
-import collections
-
-import cv2
-import gym.spaces
-import numpy as np
 
 
 class FireResetEnv(gym.Wrapper):
@@ -59,6 +58,7 @@ class FireResetEnv(gym.Wrapper):
         if done:
             self.env.reset()
         return obs
+
 
 class MaxAndSkipEnv(gym.Wrapper):
     def __init__(self, env=None, skip=4):
@@ -107,6 +107,7 @@ class ProcessFrame84(gym.ObservationWrapper):
         x_t = np.reshape(x_t, [84, 84, 1])
         return x_t.astype(np.uint8)
 
+
 # OpenAI Gym Wrappers
 # Taken from 
 # https://github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On/blob/master/Chapter06/lib/wrappers.py
@@ -132,8 +133,8 @@ class ImageToPyTorch(gym.ObservationWrapper):
     def __init__(self, env):
         super(ImageToPyTorch, self).__init__(env)
         old_shape = self.observation_space.shape
-        self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(old_shape[-1], 
-                                old_shape[0], old_shape[1]), dtype=np.float32)
+        self.observation_space = gym.spaces.Box(low=0.0, high=1.0, shape=(old_shape[-1],
+                                                                          old_shape[0], old_shape[1]), dtype=np.float32)
 
     def observation(self, observation):
         return np.moveaxis(observation, 2, 0)
@@ -143,6 +144,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
     def observation(self, obs):
         return np.array(obs).astype(np.float32) / 255.0
 
+
 def make_env(env_name):
     env = gym.make(env_name)
     env = MaxAndSkipEnv(env)
@@ -151,3 +153,12 @@ def make_env(env_name):
     env = ImageToPyTorch(env)
     env = BufferWrapper(env, 4)
     return ScaledFloatFrame(env)
+
+
+def process_state(obs: np.array) -> torch.Tensor:
+    """
+    Transforma la observación en un tensor de floats
+    :param obs: numpy array con la secuencia de imágenes de la observación.
+    :return: un tensor cargado con la observación dada.
+    """
+    return torch.tensor(obs, dtype=torch.float32)  # torch.from_numpy(obs) # device=DEVICE
