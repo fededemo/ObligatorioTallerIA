@@ -29,7 +29,7 @@ class DoubleDQNAgent(Agent):
         self.q_b = model_b
         self.q_b.to(self.device)
 
-        # Asignar una función de costo (MSE)  (y enviarla al dispositivo adecuado)
+        # Asignar una función de costo (MSE) (y enviarla al dispositivo adecuado)
         self.loss_function = nn.MSELoss()
         self.loss_function.to(self.device)
 

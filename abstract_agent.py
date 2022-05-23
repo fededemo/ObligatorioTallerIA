@@ -72,7 +72,7 @@ class Agent:
                 A = self.select_action(observation, total_steps, False)
 
                 # Ejecutar la action, observar resultado y procesarlo como indica el algoritmo.
-
+                new_state, reward, done, _ = self.end.step(A)
                 current_episode_reward += reward
                 total_steps += 1
 

@@ -24,7 +24,7 @@ class DQNAgent(Agent):
         self.policy_net = model
         self.policy_net.to(self.device)
 
-        # Asignar una función de costo (MSE)  (y enviarla al dispositivo adecuado)
+        # Asignar una función de costo (MSE) (y enviarla al dispositivo adecuado)
         self.loss_function = nn.MSELoss()
         self.loss_function.to(self.device)
 
