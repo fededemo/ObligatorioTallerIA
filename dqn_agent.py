@@ -40,6 +40,23 @@ class DQNAgent(Agent):
         return action
 
     def update_weights(self):
+        """
+        previous_value = Q[state][A]
+        error = R + gamma * np.max(Q[state_prime]) - previous_value
+
+        Q[state][A] = previous_value + alpha * error
+        """
+        """
+        y_pred = self._predict_action_reward(S, A)
+        y_true = R + (1 - done) * self.gamma * np.max(self._predict_rewards(S_prime))
+
+        self.loss(y_pred, y_true)
+
+        optimizer_q.zero_grad()
+        loss.backward()
+        th.nn.utils.clip_grad_norm_(self.q.parameters(), 10)
+        optimizer_q.step()
+        """
         if len(self.memory) > self.batch_size:
             # Resetear gradientes
 

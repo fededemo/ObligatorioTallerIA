@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.notebook import tqdm
 
-from replay_memory import ReplayMemory, Transition
+from replay_memory import ReplayMemory
 from utils import show_video
 
 
@@ -62,25 +62,29 @@ class Agent:
                 break
 
             # Observar estado inicial como indica el algoritmo
-            observation = self.env.reset()
+            S = self.env.reset()
 
             current_episode_reward = 0.0
 
             for s in range(max_steps):
 
                 # Seleccionar action usando una política epsilon-greedy.
-                A = self.select_action(observation, total_steps, False)
+                A = self.select_action(S, total_steps, False)
 
                 # Ejecutar la action, observar resultado y procesarlo como indica el algoritmo.
-                new_state, reward, done, _ = self.end.step(A)
-                current_episode_reward += reward
+                S_prime, R, done, _ = self.env.step(A)
+                current_episode_reward += R
                 total_steps += 1
 
-                # Guardar la transicion en la memoria
+                # Guardar la transition en la memoria
+                # Transition: ('state', 'action', 'reward', 'done', 'next_state')
+                self.memory.add(S, A, R, done, S_prime)
 
                 # Actualizar el estado
+                S = S_prime
 
                 # Actualizar el modelo
+                self.update_we
 
                 if done:
                     break
@@ -99,6 +103,7 @@ class Agent:
         print(
             f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.epsilon} total steps {total_steps}")
 
+        # persist this with a function
         torch.save(self.policy_net.state_dict(), "GenericDQNAgent.dat")
         writer.close()
 
@@ -128,7 +133,31 @@ class Agent:
         show_video()
 
     @abstractmethod
-    def _predict_action(self, state):
+    def _predict_rewards(self, state: np.array) -> np.array:
+        """
+        Dado un estado devuelve las rewards de cada action.
+        :param state: state dado.
+        :return: la lista de rewards para cada action.
+        """
+        pass
+
+    @abstractmethod
+    def _predict_action(self, state: np.array):
+        """
+        Dado un estado me predice el action de mayor reward (greedy).
+        :param state: state dado.
+        :return: el action con mayor reward.
+        """
+        pass
+
+    @abstractmethod
+    def _predict_action_reward(self, state: np.array, action: int):
+        """
+        Dado un estado me predice la acción de mayor reward (greedy).
+        :param state: state dado.
+        :param action: action dado.
+        :return: la reward para el action y el state dados.
+        """
         pass
 
     def select_action(self, state, current_steps, train=True):
@@ -148,4 +177,8 @@ class Agent:
             else:
                 action = np.random.choice(self.env.action_space.n)
         return action
+
+    @abstractmethod
+    def update_weights(self):
+        pass
 
