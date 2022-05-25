@@ -65,7 +65,7 @@ class Agent:
             S = self.env.reset()
 
             current_episode_reward = 0.0
-
+            steps_in_episode = 0
             for s in range(max_steps):
 
                 # Seleccionar action usando una política epsilon-greedy.
@@ -75,6 +75,7 @@ class Agent:
                 S_prime, R, done, _ = self.env.step(A)
                 current_episode_reward += R
                 total_steps += 1
+                steps_in_episode += 1
 
                 # Guardar la transition en la memoria
                 # Transition: ('state', 'action', 'reward', 'done', 'next_state')
@@ -84,27 +85,28 @@ class Agent:
                 S = S_prime
 
                 # Actualizar el modelo
-                self.update_we
+                self.update_weights()
 
-                if done:
+                if done or steps_in_episode > max_steps_episode:
                     break
 
             rewards.append(current_episode_reward)
             mean_reward = np.mean(rewards[-100:])
-            writer.add_scalar("epsilon", self.epsilon, total_steps)
+            writer.add_scalar("epsilon", self.compute_epsilon(total_steps), total_steps)
             writer.add_scalar("reward_100", mean_reward, total_steps)
             writer.add_scalar("reward", current_episode_reward, total_steps)
 
             # Report on the training rewards every EPISODE BLOCK episodes
             if ep % self.episode_block == 0:
                 print(
-                    f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.epsilon} total steps {total_steps}")
+                    f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
         print(
-            f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.epsilon} total steps {total_steps}")
+            f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
         # persist this with a function
-        torch.save(self.policy_net.state_dict(), "GenericDQNAgent.dat")
+        # torch.save(self.policy_net.state_dict(), "GenericDQNAgent.dat")
+        self._save_net()
         writer.close()
 
         return rewards
@@ -116,21 +118,28 @@ class Agent:
         done = False
 
         # Observar estado inicial como indica el algoritmo 
-
+        S = self.state_processing_function(env.reset())
         while not done:
             env.render()  # Queremos hacer render para obtener un video al final.
-            observation = self.state_processing_function(self.env.reset())
+
             # Seleccione una accion de forma completamente greedy.
-            A = self.select_action(observation, train=False)
+            A = self.select_action(S, train=False)
+
             # Ejecutar la accion, observar resultado y procesarlo como indica el algoritmo.
+            S_prime, R, done, _ = env.step(A)
+
+            # Actualizar el estado
+            S = S_prime
 
             if done:
                 break
 
-                # Actualizar el estado
-
         env.close()
         show_video()
+
+    @abstractmethod
+    def _save_net(self) -> np.array:
+        pass
 
     @abstractmethod
     def _predict_rewards(self, state: np.array) -> np.array:
@@ -160,7 +169,7 @@ class Agent:
         """
         pass
 
-    def select_action(self, state, current_steps, train=True):
+    def select_action(self, state, current_steps=None, train=True):
         """
         Se selecciona la action epsilongreedy-mente si se esta entrenando y completamente greedy en otro caso.
         :param state: es la observacion.

@@ -24,14 +24,11 @@ class DoubleDQNAgent(Agent):
                          epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block)
 
         # Asignar los modelos al agente (y enviarlos al dispositivo adecuado)
-        self.q_a = model_a
-        self.q_a.to(self.device)
-        self.q_b = model_b
-        self.q_b.to(self.device)
+        self.q_a = model_a.to(self.device)
+        self.q_b = model_b.to(self.device)
 
         # Asignar una función de costo (MSE) (y enviarla al dispositivo adecuado)
-        self.loss_function = nn.MSELoss()
-        self.loss_function.to(self.device)
+        self.loss_function = nn.MSELoss().to(self.device)
 
         # Asignar un optimizador para cada modelo (Adam)
         self.optimizer_A = Adam(self.q_a.parameters(), lr=self.learning_rate)

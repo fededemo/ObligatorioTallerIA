@@ -161,4 +161,13 @@ def process_state(obs: np.array) -> torch.Tensor:
     :param obs: numpy array con la secuencia de imágenes de la observación.
     :return: un tensor cargado con la observación dada.
     """
-    return torch.tensor(obs, dtype=torch.float32)  # torch.from_numpy(obs) # device=DEVICE
+    return to_tensor(obs)
+
+
+def to_tensor(elements: np.array) -> torch.Tensor:
+    """
+    Transforma los elements en un tensor de floats
+    :param elements: numpy array de elementos.
+    :return: un tensor cargado con los elementos dados.
+    """
+    return torch.tensor(elements, dtype=torch.float32)  # torch.from_numpy(obs) # device=DEVICE
