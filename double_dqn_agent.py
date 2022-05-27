@@ -1,13 +1,10 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim import Adam
-from torch.utils.tensorboard import SummaryWriter
-from tqdm.notebook import tqdm
 
 from abstract_agent import Agent
-from replay_memory import ReplayMemory, Transition
+from utils import to_tensor
 
 
 class DoubleDQNAgent(Agent):
@@ -35,39 +32,75 @@ class DoubleDQNAgent(Agent):
         self.optimizer_B = Adam(self.q_b.parameters(), lr=self.learning_rate)
 
     def _predict_action(self, state):
-        with torch.no_grad():
-            state_t = self.state_processing_function(state).to(self.device)
-            state_t = state_t.unsqueeze(0)
-            action_t = torch.argmax(self.q_a(state_t) + self.q_b(state_t), dim=1)
-            action = action_t.item()
+        # with torch.no_grad():
+        state_t = self.state_processing_function(state).to(self.device)
+        state_t = state_t.unsqueeze(0)
+        action_t = torch.argmax(self.q_a(state_t) + self.q_b(state_t), dim=1)
+        action = action_t.item()
         return action
+
+    def _predict_rewards(self, states: np.array, use_first:bool=True) -> np.array:
+        """
+        Dado una serie de estados devuelve las rewards para cada action.
+        :param states: states dados.
+        :param use_first: to use first network for prediction.
+        :returns: la lista de rewards para cada action de cada estado.
+        """
+        # with torch.no_grad():
+        state_t = self.state_processing_function(states).to(self.device)
+        if use_first:
+            rewards = self.q_a(state_t)
+        else:
+            rewards = self.q_b(state_t)
+        return rewards
 
     def update_weights(self):
         if len(self.memory) > self.batch_size:
-            # Obtener un minibatch de la memoria. Resultando en tensores de estados, acciones, recompensas, flags de terminacion y siguentes estados.
+            # Obtener un minibatch de la memoria. Resultando en tensores de estados, acciones, recompensas, flags de
+            # terminacion y siguentes estados.
+            mini_batch = self.memory.sample(self.batch_size)
 
             # Enviar los tensores al dispositivo correspondiente.
-            states = ?
-            actions = ?
-            rewards = ?
-            dones = ?  # Dones deberia ser 0 y 1; no True y False. Pueden usar .float() en un tensor para convertirlo
-            next_states = ?
+            states, actions, rewards, dones, next_states = zip(*mini_batch)
+
+            states = to_tensor(states).to(self.device)
+            actions = to_tensor(actions).long().to(self.device)
+            rewards = to_tensor(rewards).to(self.device)
+            dones = to_tensor(dones).to(self.device)
+            next_states = to_tensor(next_states).to(self.device)
 
             # Actualizar al azar Q_a o Q_b usando el otro para calcular el valor de los siguientes estados.
-
             # Para el Q elegido:
-            # Obetener el valor estado-accion (Q) de acuerdo al Q seleccionado.
-            q_actual = ?
+            # Obtener el valor estado-accion (Q) de acuerdo al Q seleccionado.
+            use_first = np.random.uniform() > 0.5
+            q_actual = self._predict_rewards(states, use_first)
+            predicted = q_actual[torch.arange(self.batch_size), actions]
 
             # Obtener max a' Q para los siguientes estados (del minibatch) (Usando el Q no seleccionado).
             # Es importante hacer .detach() al resultado de este computo.
             # Si el estado siguiente es terminal (done) este valor debería ser 0.
-            max_q_next_state = ?
+            max_q_next_state = torch.max(self._predict_rewards(next_states, not use_first), dim=1).values.detach()
 
             # Compute el target de DQN de acuerdo a la Ecuacion (3) del paper.
-            target = ?
+            target = rewards + (1 - dones) * self.gamma * max_q_next_state
 
             # Resetear gradientes
+            self.optimizer_A.zero_grad()
+            self.optimizer_B.zero_grad()
 
             # Compute el costo y actualice los pesos.
-            # En Pytorch la funcion de costo se llaman con (predicciones, objetivos) en ese orden.
+            loss = self.loss_function(predicted, target)
+
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=0.5)
+            if use_first:
+                self.optimizer_A.step()
+            else:
+                self.optimizer_B.step()
+
+    def _save_net(self) -> None:
+        """
+        Guarda los pesos de la red a disco.
+        """
+        torch.save(self.q_a.state_dict(), "./weights/double_DQNAgent_a.pt")
+        torch.save(self.q_b.state_dict(), "./weights/double_DQNAgent_b.pt")

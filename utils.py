@@ -3,6 +3,7 @@ import collections
 import glob
 import io
 import uuid
+from typing import List
 
 import cv2
 import gym.spaces
@@ -155,19 +156,19 @@ def make_env(env_name):
     return ScaledFloatFrame(env)
 
 
-def process_state(obs: np.array) -> torch.Tensor:
-    """
-    Transforma la observación en un tensor de floats
-    :param obs: numpy array con la secuencia de imágenes de la observación.
-    :return: un tensor cargado con la observación dada.
-    """
-    return to_tensor(obs)
-
-
 def to_tensor(elements: np.array) -> torch.Tensor:
     """
     Transforma los elements en un tensor de floats
     :param elements: numpy array de elementos.
-    :return: un tensor cargado con los elementos dados.
+    :returns: un tensor cargado con los elementos dados.
     """
-    return torch.tensor(elements, dtype=torch.float32)  # torch.from_numpy(obs) # device=DEVICE
+    return torch.tensor(elements, dtype=torch.float32)
+
+
+def process_state(obs: List[float]) -> torch.Tensor:
+    """
+    Transforma la observación en un tensor de floats
+    :param obs: array con la secuencia de imágenes de la observación.
+    :returns: un tensor cargado con la observación dada.
+    """
+    return to_tensor(obs)

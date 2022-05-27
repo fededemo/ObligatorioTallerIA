@@ -1,9 +1,8 @@
 from abc import abstractmethod
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import torch
-import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 from tqdm.notebook import tqdm
 
@@ -55,7 +54,7 @@ class Agent:
               writer_name="default_writer_name"):
         rewards = []
         total_steps = 0
-        writer = SummaryWriter(comment="-" + writer_name)
+        writer = SummaryWriter(comment=f">>> {writer_name}")
 
         for ep in tqdm(range(number_episodes), unit=' episodes'):
             if total_steps > max_steps:
@@ -69,7 +68,7 @@ class Agent:
             for s in range(max_steps):
 
                 # Seleccionar action usando una política epsilon-greedy.
-                A = self.select_action(S, total_steps, False)
+                A = self.select_action(S, current_steps=total_steps)
 
                 # Ejecutar la action, observar resultado y procesarlo como indica el algoritmo.
                 S_prime, R, done, _ = self.env.step(A)
@@ -105,13 +104,13 @@ class Agent:
             f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
         # persist this with a function
-        # torch.save(self.policy_net.state_dict(), "GenericDQNAgent.dat")
         self._save_net()
         writer.close()
 
         return rewards
 
     def compute_epsilon(self, steps_so_far: int) -> float:
+        # 1 + (0.02 - 1) * min (1, 882/1000)
         return self.epsilon_i + (self.epsilon_f - self.epsilon_i) * min(1, steps_so_far / self.epsilon_anneal)
 
     def record_test_episode(self, env):
@@ -138,7 +137,10 @@ class Agent:
         show_video()
 
     @abstractmethod
-    def _save_net(self) -> np.array:
+    def _save_net(self) -> None:
+        """
+        Guarda los pesos de la red a disco.
+        """
         pass
 
     @abstractmethod
@@ -146,39 +148,31 @@ class Agent:
         """
         Dado un estado devuelve las rewards de cada action.
         :param state: state dado.
-        :return: la lista de rewards para cada action.
+        :returns: la lista de rewards para cada action.
         """
         pass
 
     @abstractmethod
-    def _predict_action(self, state: np.array):
+    def _predict_action(self, state: np.array) -> int:
         """
         Dado un estado me predice el action de mayor reward (greedy).
         :param state: state dado.
-        :return: el action con mayor reward.
+        :returns: el action con mayor reward.
         """
         pass
 
-    @abstractmethod
-    def _predict_action_reward(self, state: np.array, action: int):
-        """
-        Dado un estado me predice la acción de mayor reward (greedy).
-        :param state: state dado.
-        :param action: action dado.
-        :return: la reward para el action y el state dados.
-        """
-        pass
-
-    def select_action(self, state, current_steps=None, train=True):
+    def select_action(self, state: np.array, current_steps: Optional[int] = None, train: bool = True) -> int:
         """
         Se selecciona la action epsilongreedy-mente si se esta entrenando y completamente greedy en otro caso.
         :param state: es la observacion.
         :param current_steps: cantidad de pasos llevados actualmente. En el caso de Train=False no se tiene en
          consideracion.
         :param train: si se está entrenando, True para indicar que si, False para indicar que no.
+        :returns: an action.
         """
         if not train:
-            action = self._predict_action(state)
+            with torch.no_grad():
+                action = self._predict_action(state)
         else:
             random_number = np.random.uniform()
             if random_number >= self.compute_epsilon(steps_so_far=current_steps):

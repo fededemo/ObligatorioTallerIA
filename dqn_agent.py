@@ -1,13 +1,9 @@
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim import Adam
-from torch.utils.tensorboard import SummaryWriter
-from tqdm.notebook import tqdm
 
 from abstract_agent import Agent
-from replay_memory import ReplayMemory, Transition
 from utils import to_tensor
 
 
@@ -31,18 +27,18 @@ class DQNAgent(Agent):
         self.optimizer = Adam(self.policy_net.parameters(), lr=self.learning_rate)
 
     def _predict_action(self, state):
-        with torch.no_grad():
-            state_t = self.state_processing_function(state).to(self.device)
-            state_t = state_t.unsqueeze(0)
-            action_t = torch.argmax(self.policy_net(state_t), dim=1)
-            action = action_t.item()
+        # with torch.no_grad():
+        state_t = self.state_processing_function(state).to(self.device)
+        state_t = state_t.unsqueeze(0)
+        action_t = torch.argmax(self.policy_net(state_t), dim=1)
+        action = action_t.item()
         return action
 
     def _predict_rewards(self, states: np.array) -> np.array:
         """
         Dado una serie de estados devuelve las rewards para cada action.
         :param states: states dados.
-        :return: la lista de rewards para cada action de cada estado.
+        :returns: la lista de rewards para cada action de cada estado.
         """
         # with torch.no_grad():
         state_t = self.state_processing_function(states).to(self.device)
@@ -76,11 +72,18 @@ class DQNAgent(Agent):
             max_q_next_state = torch.max(self._predict_rewards(next_states), dim=1).values.detach()
 
             # Compute el target de DQN de acuerdo a la Ecuación (3) del paper.
-            # y_true = R + (1 - done) * self.gamma * np.max(self._predict_rewards(S_prime))
+            # y_true = R + (1 - done) * self.gamma * max(self._predict_rewards(S_prime))
             target = rewards + (1 - dones) * self.gamma * max_q_next_state
 
             # Compute el costo y actualice los pesos.
             loss = self.loss_function(predicted, target)
 
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=0.5)
             self.optimizer.step()
+
+    def _save_net(self) -> None:
+        """
+        Guarda los pesos de la red a disco.
+        """
+        torch.save(self.policy_net.state_dict(), "./weights/DQNAgent.pt")
