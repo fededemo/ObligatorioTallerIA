@@ -1,9 +1,11 @@
+from typing import Tuple
+
 import torch
 import torch.nn as nn
 
 
 class DQN_CNN_Model(nn.Module):
-    def __init__(self, env_inputs, n_actions):
+    def __init__(self, env_inputs: Tuple[int], n_actions: int):
         super().__init__()
 
         self.cnn = nn.Sequential(nn.Conv2d(env_inputs[0], 32, kernel_size=8, stride=4),

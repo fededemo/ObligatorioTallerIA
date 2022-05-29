@@ -1,3 +1,6 @@
+from os.path import join
+from typing import Callable, Optional
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -14,11 +17,16 @@ class DoubleDQNAgent(Agent):
     optimizer_A: torch.optim.Optimizer
     optimizer_B: torch.optim.Optimizer
 
-    def __init__(self, gym_env, model_a, model_b, obs_processing_func, memory_buffer_size, batch_size, learning_rate,
-                 gamma,
-                 epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block, sync_target=100):
+    def __init__(self, gym_env: object, model_a: nn.Module, model_b: nn.Module, obs_processing_func: Callable,
+                 memory_buffer_size: int, batch_size: int, learning_rate: float,
+                 gamma: float, epsilon_i: float, epsilon_f: float, epsilon_anneal_time: int, episode_block: int,
+                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights'):
         super().__init__(gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma,
-                         epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block)
+                         epsilon_i, epsilon_f, epsilon_anneal_time, episode_block,
+                         use_pretrained=use_pretrained, model_weights_dir_path=model_weights_dir_path)
+
+        self.model_weights_a_path = join(self.model_weights_dir_path, 'double_DQNAgent_a.pt')
+        self.model_weights_b_path = join(self.model_weights_dir_path, 'double_DQNAgent_b.pt')
 
         # Asignar los modelos al agente (y enviarlos al dispositivo adecuado)
         self.q_a = model_a.to(self.device)
@@ -30,6 +38,9 @@ class DoubleDQNAgent(Agent):
         # Asignar un optimizador para cada modelo (Adam)
         self.optimizer_A = Adam(self.q_a.parameters(), lr=self.learning_rate)
         self.optimizer_B = Adam(self.q_b.parameters(), lr=self.learning_rate)
+
+        if use_pretrained:
+            self._load_net()
 
     def _predict_action(self, state):
         # with torch.no_grad():
@@ -102,5 +113,15 @@ class DoubleDQNAgent(Agent):
         """
         Guarda los pesos de la red a disco.
         """
-        torch.save(self.q_a.state_dict(), "./weights/double_DQNAgent_a.pt")
-        torch.save(self.q_b.state_dict(), "./weights/double_DQNAgent_b.pt")
+        torch.save(self.q_a.state_dict(), self.model_weights_a_path)
+        torch.save(self.q_b.state_dict(), self.model_weights_b_path)
+
+    def _load_net(self) -> None:
+        """
+        Carga los pesos de la red desde disco.
+        """
+        print(f"INFO: Using weights from: {self.model_weights_a_path} & {self.model_weights_b_path}")
+        self.q_a.load_state_dict(torch.load(self.model_weights_a_path))
+        # self.q_a.eval()
+        self.q_b.load_state_dict(torch.load(self.model_weights_b_path))
+        # self.q_b.eval()

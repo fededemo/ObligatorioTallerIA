@@ -1,6 +1,10 @@
+from os.path import join
+from typing import Callable, Optional
+
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn import Module
 from torch.optim import Adam
 
 from abstract_agent import Agent
@@ -12,10 +16,15 @@ class DQNAgent(Agent):
     loss_function: nn.Module
     optimizer: torch.optim.Optimizer
 
-    def __init__(self, gym_env, model, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma,
-                 epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block):
+    def __init__(self, gym_env: object, model: Module, obs_processing_func: Callable, memory_buffer_size: int,
+                 batch_size: int, learning_rate: float, gamma: float,
+                 epsilon_i: float, epsilon_f: float, epsilon_anneal_time: int, episode_block: int,
+                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights'):
         super().__init__(gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i,
-                         epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block)
+                         epsilon_f, epsilon_anneal_time, episode_block,
+                         use_pretrained=use_pretrained, model_weights_dir_path=model_weights_dir_path)
+
+        self.model_weights_path = join(self.model_weights_dir_path, 'DQNAgent.pt')
 
         # Asignar el modelo al agente (y enviarlo al dispositivo adecuado)
         self.policy_net = model.to(self.device)
@@ -25,6 +34,9 @@ class DQNAgent(Agent):
 
         # Asignar un optimizador (Adam)
         self.optimizer = Adam(self.policy_net.parameters(), lr=self.learning_rate)
+
+        if use_pretrained:
+            self._load_net()
 
     def _predict_action(self, state):
         # with torch.no_grad():
@@ -50,7 +62,8 @@ class DQNAgent(Agent):
             # Resetear gradientes
             self.optimizer.zero_grad()
 
-            # Obtener un minibatch de la memoria. Resultando en tensores de estados, acciones, recompensas, flags de terminacion y siguentes estados.
+            # Obtener un minibatch de la memoria. Resultando en tensores de estados, acciones, recompensas, flags de
+            # terminacion y siguentes estados.
             # Transition: ('state', 'action', 'reward', 'done', 'next_state')
             mini_batch = self.memory.sample(self.batch_size)
 
@@ -67,7 +80,8 @@ class DQNAgent(Agent):
             q_actual = self._predict_rewards(states)
             predicted = q_actual[torch.arange(self.batch_size), actions]
 
-            # Obtener max a' Q para los siguientes estados (del minibatch). Es importante hacer .detach() al resultado de este computo.
+            # Obtener max a' Q para los siguientes estados (del minibatch). Es importante hacer .detach() al resultado
+            # de este computo.
             # Si el estado siguiente es terminal (done) este valor debería ser 0.
             max_q_next_state = torch.max(self._predict_rewards(next_states), dim=1).values.detach()
 
@@ -86,4 +100,12 @@ class DQNAgent(Agent):
         """
         Guarda los pesos de la red a disco.
         """
-        torch.save(self.policy_net.state_dict(), "./weights/DQNAgent.pt")
+        torch.save(self.policy_net.state_dict(), self.model_weights_path)
+
+    def _load_net(self) -> None:
+        """
+        Carga los pesos de la red desde disco.
+        """
+        print(f"INFO: Using weights from: {self.model_weights_path}")
+        self.policy_net.load_state_dict(torch.load(self.model_weights_path))
+        # self.policy_net.eval()

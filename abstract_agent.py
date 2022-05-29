@@ -21,12 +21,18 @@ class Agent:
     epsilon_i: float
     epsilon_f: float
     epsilon_anneal: float
-    epsilon_decay: float
     episode_block: int
     total_steps: int
+    use_pretrained: bool
+    model_weights_dir_path: str
 
-    def __init__(self, gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma,
-                 epsilon_i, epsilon_f, epsilon_anneal_time, epsilon_decay, episode_block):
+    def __init__(self, gym_env: object, obs_processing_func: Callable, memory_buffer_size: int, batch_size: int,
+                 learning_rate: float, gamma: float, epsilon_i: float, epsilon_f: float,
+                 epsilon_anneal_time: int, episode_block: int,
+                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights'):
+        self.use_pretrained = use_pretrained
+        self.model_weights_dir_path = model_weights_dir_path
+
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         # Function phi para procesar los estados.
@@ -45,7 +51,6 @@ class Agent:
         self.epsilon_i = epsilon_i
         self.epsilon_f = epsilon_f
         self.epsilon_anneal = epsilon_anneal_time
-        self.epsilon_decay = epsilon_decay
         self.episode_block = episode_block
 
         self.total_steps = 0
@@ -97,11 +102,11 @@ class Agent:
 
             # Report on the training rewards every EPISODE BLOCK episodes
             if ep % self.episode_block == 0:
-                print(
-                    f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
+                print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
+                      f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
-        print(
-            f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
+        print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
+              f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
         # persist this with a function
         self._save_net()
@@ -140,6 +145,13 @@ class Agent:
     def _save_net(self) -> None:
         """
         Guarda los pesos de la red a disco.
+        """
+        pass
+
+    @abstractmethod
+    def _load_net(self) -> None:
+        """
+        Carga los pesos de la red desde disco.
         """
         pass
 
