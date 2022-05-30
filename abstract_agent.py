@@ -107,7 +107,7 @@ class Agent:
                 print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
                       f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
-            if self.self.save_between_steps is not None and ep % self.save_between_steps == 0:
+            if self.save_between_steps is not None and ep % self.save_between_steps == 0:
                 self._save_net(suffix=ep)
 
         print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
