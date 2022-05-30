@@ -121,8 +121,8 @@ class DoubleDQNAgent(Agent):
         file_path_a = self.model_weights_a_path
         file_path_b = self.model_weights_b_path
         if suffix is not None:
-            file_path_a = self.model_weights_a_path.replace('.', f'_{suffix}.')
-            file_path_b = self.model_weights_b_path.replace('.', f'_{suffix}.')
+            file_path_a = self.model_weights_a_path.replace('.pt', f'_{suffix}.pt')
+            file_path_b = self.model_weights_b_path.replace('.pt', f'_{suffix}.pt')
 
         torch.save(self.q_a.state_dict(), file_path_a)
         torch.save(self.q_b.state_dict(), file_path_b)

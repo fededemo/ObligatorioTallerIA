@@ -105,7 +105,7 @@ class DQNAgent(Agent):
         """
         file_path = self.model_weights_path
         if suffix is not None:
-            file_path = self.model_weights_path.replace('.', f'_{suffix}.')
+            file_path = self.model_weights_path.replace('.pt', f'_{suffix}.pt')
 
         torch.save(self.policy_net.state_dict(), file_path)
 
