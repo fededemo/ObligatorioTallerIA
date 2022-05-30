@@ -103,10 +103,12 @@ class DoubleDQNAgent(Agent):
             loss = self.loss_function(predicted, target)
 
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=0.5)
+
             if use_first:
+                torch.nn.utils.clip_grad_norm_(self.q_a.parameters(), max_norm=0.5)
                 self.optimizer_A.step()
             else:
+                torch.nn.utils.clip_grad_norm_(self.q_b.parameters(), max_norm=0.5)
                 self.optimizer_B.step()
 
     def _save_net(self) -> None:
