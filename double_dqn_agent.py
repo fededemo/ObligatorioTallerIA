@@ -50,7 +50,7 @@ class DoubleDQNAgent(Agent):
         action = action_t.item()
         return action
 
-    def _predict_rewards(self, states: np.array, use_first:bool=True) -> np.array:
+    def _predict_rewards(self, states: np.array, use_first: bool = True) -> np.array:
         """
         Dado una serie de estados devuelve las rewards para cada action.
         :param states: states dados.
