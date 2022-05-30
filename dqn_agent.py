@@ -19,10 +19,12 @@ class DQNAgent(Agent):
     def __init__(self, gym_env: object, model: Module, obs_processing_func: Callable, memory_buffer_size: int,
                  batch_size: int, learning_rate: float, gamma: float,
                  epsilon_i: float, epsilon_f: float, epsilon_anneal_time: int, episode_block: int,
-                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights'):
+                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights',
+                 save_between_steps: Optional[int] = None):
         super().__init__(gym_env, obs_processing_func, memory_buffer_size, batch_size, learning_rate, gamma, epsilon_i,
                          epsilon_f, epsilon_anneal_time, episode_block,
-                         use_pretrained=use_pretrained, model_weights_dir_path=model_weights_dir_path)
+                         use_pretrained=use_pretrained, model_weights_dir_path=model_weights_dir_path,
+                         save_between_steps=save_between_steps)
 
         self.model_weights_path = join(self.model_weights_dir_path, 'DQNAgent.pt')
 
