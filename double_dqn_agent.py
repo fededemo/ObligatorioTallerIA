@@ -111,12 +111,19 @@ class DoubleDQNAgent(Agent):
                 torch.nn.utils.clip_grad_norm_(self.q_b.parameters(), max_norm=0.5)
                 self.optimizer_B.step()
 
-    def _save_net(self) -> None:
+    def _save_net(self, suffix: Optional[str] = None) -> None:
         """
         Guarda los pesos de la red a disco.
+        :param suffix: sufijo a agregar al archivo.
         """
-        torch.save(self.q_a.state_dict(), self.model_weights_a_path)
-        torch.save(self.q_b.state_dict(), self.model_weights_b_path)
+        file_path_a = self.model_weights_a_path
+        file_path_b = self.model_weights_b_path
+        if suffix is not None:
+            file_path_a = self.model_weights_a_path.replace('.', f'_{suffix}.')
+            file_path_b = self.model_weights_b_path.replace('.', f'_{suffix}.')
+
+        torch.save(self.q_a.state_dict(), file_path_a)
+        torch.save(self.q_b.state_dict(), file_path_b)
 
     def _load_net(self) -> None:
         """

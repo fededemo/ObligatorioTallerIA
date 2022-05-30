@@ -96,11 +96,16 @@ class DQNAgent(Agent):
             torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=0.5)
             self.optimizer.step()
 
-    def _save_net(self) -> None:
+    def _save_net(self, suffix: Optional[str] = None) -> None:
         """
         Guarda los pesos de la red a disco.
+        :param suffix: sufijo a agregar al archivo.
         """
-        torch.save(self.policy_net.state_dict(), self.model_weights_path)
+        file_path = self.model_weights_path
+        if suffix is not None:
+            file_path = self.model_weights_path.replace('.', f'_{suffix}.')
+
+        torch.save(self.policy_net.state_dict(), file_path)
 
     def _load_net(self) -> None:
         """

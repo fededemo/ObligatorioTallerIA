@@ -29,7 +29,8 @@ class Agent:
     def __init__(self, gym_env: object, obs_processing_func: Callable, memory_buffer_size: int, batch_size: int,
                  learning_rate: float, gamma: float, epsilon_i: float, epsilon_f: float,
                  epsilon_anneal_time: int, episode_block: int,
-                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights'):
+                 use_pretrained: Optional[bool] = False, model_weights_dir_path: Optional[str] = './weights',
+                 save_between_steps: Optional[int] = None):
         self.use_pretrained = use_pretrained
         self.model_weights_dir_path = model_weights_dir_path
 
@@ -43,6 +44,7 @@ class Agent:
 
         self.env = gym_env
 
+        self.save_between_steps = save_between_steps
         # Hyperparameters
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -105,6 +107,9 @@ class Agent:
                 print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
                       f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
+            if self.self.save_between_steps is not None and ep % self.save_between_steps == 0:
+                self._save_net(suffix=ep)
+
         print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
               f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
 
@@ -142,9 +147,10 @@ class Agent:
         show_video()
 
     @abstractmethod
-    def _save_net(self) -> None:
+    def _save_net(self, suffix: Optional[str] = None) -> None:
         """
         Guarda los pesos de la red a disco.
+        :param suffix: sufijo a agregar al archivo.
         """
         pass
 
