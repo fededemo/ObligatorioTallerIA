@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Callable, Optional
 
 import numpy as np
@@ -10,7 +10,7 @@ from replay_memory import ReplayMemory
 from utils import show_video
 
 
-class Agent:
+class Agent(ABC):
     device: torch.device
     state_processing_function: Callable[[np.array], torch.Tensor]
     memory = ReplayMemory
@@ -105,13 +105,13 @@ class Agent:
             # Report on the training rewards every EPISODE BLOCK episodes
             if ep % self.episode_block == 0:
                 print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
-                      f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
+                      f"epsilon {self.compute_epsilon(total_steps):.5f} total steps {total_steps}")
 
             if self.save_between_steps is not None and ep % self.save_between_steps == 0:
                 self._save_net(suffix=ep)
 
         print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
-              f"epsilon {self.compute_epsilon(total_steps)} total steps {total_steps}")
+              f"epsilon {self.compute_epsilon(total_steps):.5f} total steps {total_steps}")
 
         # persist this with a function
         self._save_net()
