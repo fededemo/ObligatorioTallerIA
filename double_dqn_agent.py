@@ -98,8 +98,10 @@ class DoubleDQNAgent(Agent):
             target = rewards + (1 - dones) * self.gamma * max_q_next_state
 
             # Resetear gradientes
-            self.optimizer_A.zero_grad()
-            self.optimizer_B.zero_grad()
+            if use_first:
+                self.optimizer_A.zero_grad()
+            else:
+                self.optimizer_B.zero_grad()
 
             # Compute el costo y actualice los pesos.
             loss = self.loss_function(predicted, target)

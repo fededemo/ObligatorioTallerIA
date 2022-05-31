@@ -72,7 +72,7 @@ class Agent:
 
             current_episode_reward = 0.0
             steps_in_episode = 0
-            for s in range(max_steps):
+            for s in range(max_steps_episode):
 
                 # Seleccionar action usando una política epsilon-greedy.
                 A = self.select_action(S, current_steps=total_steps)
@@ -93,7 +93,7 @@ class Agent:
                 # Actualizar el modelo
                 self.update_weights()
 
-                if done or steps_in_episode > max_steps_episode:
+                if done:
                     break
 
             rewards.append(current_episode_reward)
