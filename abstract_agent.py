@@ -93,6 +93,9 @@ class Agent(ABC):
                 # Actualizar el modelo
                 self.update_weights()
 
+                if self.save_between_steps is not None and total_steps % self.save_between_steps == 0:
+                    self._save_net(suffix=total_steps)
+
                 if done:
                     break
 
@@ -104,14 +107,11 @@ class Agent(ABC):
 
             # Report on the training rewards every EPISODE BLOCK episodes
             if ep % self.episode_block == 0:
-                print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
-                      f"epsilon {self.compute_epsilon(total_steps):.5f} total steps {total_steps}")
+                print(f"Episode {ep} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])}, "
+                      f"epsilon {self.compute_epsilon(total_steps):.5f}, total steps {total_steps}")
 
-            if self.save_between_steps is not None and total_steps % self.save_between_steps == 0:
-                self._save_net(suffix=total_steps)
-
-        print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])} "
-              f"epsilon {self.compute_epsilon(total_steps):.5f} total steps {total_steps}")
+        print(f"Episode {ep + 1} - Avg. Reward over the last {self.episode_block} episodes {np.mean(rewards[-self.episode_block:])}, "
+              f"epsilon {self.compute_epsilon(total_steps):.5f}, total steps {total_steps}")
 
         # persist this with a function
         self._save_net()

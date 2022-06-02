@@ -123,6 +123,7 @@ class DoubleDQNAgent(Agent):
         file_path_a = self.model_weights_a_path
         file_path_b = self.model_weights_b_path
         if suffix is not None:
+            print('INFO: Checkpoint passed, saving partial weights.')
             file_path_a = self.model_weights_a_path.replace('.pt', f'_{suffix}.pt')
             file_path_b = self.model_weights_b_path.replace('.pt', f'_{suffix}.pt')
 

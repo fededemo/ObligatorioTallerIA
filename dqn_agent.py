@@ -105,6 +105,7 @@ class DQNAgent(Agent):
         """
         file_path = self.model_weights_path
         if suffix is not None:
+            print('INFO: Checkpoint passed, saving partial weights.')
             file_path = self.model_weights_path.replace('.pt', f'_{suffix}.pt')
 
         torch.save(self.policy_net.state_dict(), file_path)
