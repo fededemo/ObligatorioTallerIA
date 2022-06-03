@@ -144,7 +144,6 @@ class Agent(ABC):
                 break
 
         env.close()
-        show_video()
 
     @abstractmethod
     def _save_net(self, suffix: Optional[str] = None) -> None:
