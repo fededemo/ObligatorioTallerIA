@@ -5,6 +5,7 @@ from os.path import getmtime
 import io
 import uuid
 from typing import List
+import subprocess
 
 import cv2
 import gym.spaces
@@ -23,6 +24,12 @@ def show_video():
     mp4list = sorted(glob('./video/*/*.mp4'), key=getmtime, reverse=True)
     if len(mp4list) > 0:
         mp4 = mp4list[0]
+
+        avifile = mp4.replace('.mp4','.avi')
+        subprocess.call("ffmpeg -i "+mp4+' '+avifile, shell=True)
+        mp4 = avifile.replace('.avi','a.mp4')
+        subprocess.call("ffmpeg -i "+avifile+' -vcodec libx264 '+mp4, shell=True)
+        
         video = io.open(mp4, 'r+b').read()
         encoded = b64encode(video)
         ipythondisplay.display(HTML(
