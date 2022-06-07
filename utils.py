@@ -2,6 +2,7 @@ from base64 import b64encode
 import collections
 from glob import glob
 from os.path import getmtime
+from os import remove
 import io
 import uuid
 from typing import List
@@ -25,21 +26,33 @@ def show_video():
     if len(mp4list) > 0:
         mp4 = mp4list[0]
 
-        avifile = mp4.replace('.mp4','.avi')
-        subprocess.call("ffmpeg -i "+mp4+' '+avifile, shell=True)
-        mp4 = avifile.replace('.avi','a.mp4')
-        subprocess.call("ffmpeg -i "+avifile+' -vcodec libx264 '+mp4, shell=True)
-        
-        video = io.open(mp4, 'r+b').read()
-        encoded = b64encode(video)
-        ipythondisplay.display(HTML(
-            data='''
-                <video alt="test" autoplay loop controls style="height: 400px;">
-                    <source src="data:video/mp4;base64,{0}" type="video/mp4"/>
-                 </video>
-            '''.format(encoded.decode('ascii'))))
+        try:
+            # Workaround para gym monitor 0.19.0 que usa mpeg4 como codec y no h264.
+            command = f'ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "{mp4}"'
+            codec = subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout.strip()
+
+            if codec == 'mpeg4':
+                avi_file = mp4.replace('.mp4', '.avi')
+                command = f'ffmpeg -i "{mp4}" -y "{avi_file}"'
+                output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                command = f'ffmpeg -i "{avi_file}" -vcodec libx264 -y "{mp4}"'
+                output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+                remove(avi_file)
+
+            video = io.open(mp4, 'r+b').read()
+            encoded = b64encode(video)
+            ipythondisplay.display(HTML(
+                data='''
+                    <video alt="test" autoplay loop controls style="height: 400px;">
+                        <source src="data:video/mp4;base64,{0}" type="video/mp4"/>
+                     </video>
+                '''.format(encoded.decode('ascii'))))
+        except Exception as e:
+            print("No se pudo crear el video")
     else:
-        print("Could not find video")
+        print("No se encontró el video.")
 
 
 def wrap_env(env):
