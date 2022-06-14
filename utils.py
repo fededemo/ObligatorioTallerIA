@@ -2,7 +2,7 @@ from base64 import b64encode
 import collections
 from glob import glob
 from os.path import getmtime
-from os import remove
+from os import remove, rename
 import io
 import uuid
 from typing import List
@@ -32,14 +32,11 @@ def show_video():
             codec = subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout.strip()
 
             if codec == 'mpeg4':
-                avi_file = mp4.replace('.mp4', '.avi')
-                command = f'ffmpeg -i "{mp4}" -y "{avi_file}"'
+                h264_file = mp4.replace('.mp4', '_h264.mp4')
+                command = f'ffmpeg -i "{mp4}" -y "{h264_file}"'
                 output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-                command = f'ffmpeg -i "{avi_file}" -vcodec libx264 -y "{mp4}"'
-                output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-                remove(avi_file)
+                remove(mp4)
+                rename(h264_file, mp4)
 
             video = io.open(mp4, 'r+b').read()
             encoded = b64encode(video)
