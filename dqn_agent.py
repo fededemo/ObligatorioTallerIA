@@ -88,7 +88,7 @@ class DQNAgent(Agent):
             max_q_next_state = torch.max(self._predict_rewards(next_states), dim=1).values.detach()
 
             # Compute el target de DQN de acuerdo a la Ecuación (3) del paper.
-            # y_true = R + (1 - done) * self.gamma * max(self._predict_rewards(S_prime))
+            # y_true = R + (1 - done) * gamma * max(rewards(S_prime))
             target = rewards + (1 - dones) * self.gamma * max_q_next_state
 
             # Compute el costo y actualice los pesos.

@@ -120,7 +120,6 @@ class Agent(ABC):
         return rewards
 
     def compute_epsilon(self, steps_so_far: int) -> float:
-        # 1 + (0.02 - 1) * min (1, 882/1000)
         return self.epsilon_i + (self.epsilon_f - self.epsilon_i) * min(1, steps_so_far / self.epsilon_anneal)
 
     def record_test_episode(self, env):
