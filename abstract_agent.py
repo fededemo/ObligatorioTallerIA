@@ -180,7 +180,7 @@ class Agent(ABC):
     def select_action(self, state: np.array, current_steps: Optional[int] = None, train: bool = True) -> int:
         """
         Se selecciona la action epsilongreedy-mente si se esta entrenando y completamente greedy en otro caso.
-        :param state: es la observacion.
+        :param state: es la observación.
         :param current_steps: cantidad de pasos llevados actualmente. En el caso de Train=False no se tiene en
          consideracion.
         :param train: si se está entrenando, True para indicar que si, False para indicar que no.
