@@ -1,11 +1,12 @@
+from _testcapi import codec_incrementaldecoder
 from base64 import b64encode
 import collections
 from glob import glob
-from os.path import getmtime
+from os.path import getmtime, join
 from os import remove, rename
 import io
 import uuid
-from typing import List
+from typing import List, Optional
 import subprocess
 
 import cv2
@@ -16,11 +17,36 @@ from gym.wrappers import Monitor
 from IPython import display as ipythondisplay
 from IPython.display import HTML
 
-
-def show_video():
+def get_video_codec(mp4_file: str) -> str:
     """
-    Utility function to enable video recording of gym environment and displaying it
-    To enable video, just do "env = wrap_env(env)""
+    Obtiene el codec del video.
+    :param mp4_file: path del video.
+    :returns: codec del video.
+    """
+    command = f'ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "{mp4_file}"'
+    return subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout.strip()
+
+def convert_mp4_to_h264(mp4_file: str) -> None:
+    """
+    To convert a mp4 video to h264.
+    :param mp4_file: path to mp4 video.
+    """
+    h264_file = mp4_file.replace('.mp4', '_h264.mp4')
+    command = f'ffmpeg -i "{mp4_file}" -y "{h264_file}"'
+    output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    remove(mp4_file)
+    rename(h264_file, mp4_file)
+
+
+def show_video() -> None:
+    """
+    Utility function to show/display videos recorded with gym environment.
+    To record a video, just do:
+    ```
+        env = make_env(ENV_NAME)
+        wrapped_env = wrap_env(env)
+        agent.record_test_episode(wrapped_env)
+    ```
     """
     mp4list = sorted(glob('./video/*/*.mp4'), key=getmtime, reverse=True)
     if len(mp4list) > 0:
@@ -28,15 +54,9 @@ def show_video():
 
         try:
             # Workaround para gym monitor 0.19.0 que usa mpeg4 como codec y no h264.
-            command = f'ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "{mp4}"'
-            codec = subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout.strip()
-
+            codec = get_video_codec(mp4)
             if codec == 'mpeg4':
-                h264_file = mp4.replace('.mp4', '_h264.mp4')
-                command = f'ffmpeg -i "{mp4}" -y "{h264_file}"'
-                output = subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                remove(mp4)
-                rename(h264_file, mp4)
+                convert_mp4_to_h264(mp4)
 
             video = io.open(mp4, 'r+b').read()
             encoded = b64encode(video)
@@ -52,12 +72,73 @@ def show_video():
         print("No se encontró el video.")
 
 
-def wrap_env(env):
+def show_video_comparison(first_video: str, second_video: str) -> None:
+    """
+    To display a side by side comparison of videos.
+    :param first_video: first video to compare (path to it).
+    :param second_video: second video to compare (path to it).
+    """
+    v1_mp4 = glob(f'./video/{first_video}/*.mp4')[0]
+
+    try:
+        codec = get_video_codec(v1_mp4)
+        if codec == 'mpeg4':
+            convert_mp4_to_h264(v1_mp4)
+    except Exception as e:
+        print(f"No se pudo crear el video {v1_mp4}")
+
+    video1_bytes = io.open(v1_mp4, 'r+b').read()
+    encoded_v1 = b64encode(video1_bytes)
+
+    v2_mp4 = glob(f'./video/{second_video}/*.mp4')[0]
+
+    try:
+        codec = get_video_codec(v2_mp4)
+        if codec == 'mpeg4':
+            convert_mp4_to_h264(v2_mp4)
+    except Exception as e:
+        print(f"No se pudo crear el video {v1_mp4}")
+
+    video2_bytes = io.open(v2_mp4, 'r+b').read()
+    encoded_v2 = b64encode(video2_bytes)
+
+    ipythondisplay.display(HTML(
+        data='''
+
+                <table>
+                    <thead>
+                        <th style="text-align:center">Deep Q-Learning</th>
+                        <th style="text-align:center">Double Deep Q-Learning</th>
+                    <thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <video alt="test" autoplay 
+                                    loop controls style="height: 400px;">
+                                    <source src="data:video/mp4;base64,{0}" type="video/mp4"/>
+                                </video>
+                            </td>
+                            <td>
+                                <video alt="test" autoplay 
+                                    loop controls style="height: 400px;">
+                                    <source src="data:video/mp4;base64,{1}" type="video/mp4"/>
+                                </video>
+                            </td>
+                        </tr>
+                    <tbody>
+                </table>
+            '''.format(encoded_v1.decode('ascii'), encoded_v2.decode('ascii'))))
+
+
+def wrap_env(env, video_name: Optional[str] = None) -> Monitor:
     """
     Wrapper del ambiente donde definimos un Monitor que guarda la visualización como un archivo de video.
+    :param env: ambiente.
+    :param video_name: optional name for the folder to store the video.
     """
-
-    env = Monitor(env, './video/' + str(uuid.uuid4()), force=True)
+    if video_name is None:
+        video_name = str(uuid.uuid4())
+    env = Monitor(env, join('./video', video_name), force=True)
     return env
 
 
