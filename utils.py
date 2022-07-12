@@ -1,13 +1,12 @@
-from _testcapi import codec_incrementaldecoder
-from base64 import b64encode
 import collections
-from glob import glob
-from os.path import getmtime, join
-from os import remove, rename
 import io
-import uuid
-from typing import List, Optional
 import subprocess
+import uuid
+from base64 import b64encode
+from glob import glob
+from os import remove, rename
+from os.path import getmtime, join
+from typing import List, Optional
 
 import cv2
 import gym.spaces
@@ -17,6 +16,7 @@ from gym.wrappers import Monitor
 from IPython import display as ipythondisplay
 from IPython.display import HTML
 
+
 def get_video_codec(mp4_file: str) -> str:
     """
     Obtiene el codec del video.
@@ -25,6 +25,7 @@ def get_video_codec(mp4_file: str) -> str:
     """
     command = f'ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "{mp4_file}"'
     return subprocess.run(command, shell=True, stdout=subprocess.PIPE, text=True).stdout.strip()
+
 
 def convert_mp4_to_h264(mp4_file: str) -> None:
     """
@@ -38,7 +39,7 @@ def convert_mp4_to_h264(mp4_file: str) -> None:
     rename(h264_file, mp4_file)
 
 
-def show_video() -> None:
+def show_video(folder: Optional[str] = None) -> None:
     """
     Utility function to show/display videos recorded with gym environment.
     To record a video, just do:
@@ -47,8 +48,10 @@ def show_video() -> None:
         wrapped_env = wrap_env(env)
         agent.record_test_episode(wrapped_env)
     ```
+    :param folder: folder where the video is stored.
     """
-    mp4list = sorted(glob('./video/*/*.mp4'), key=getmtime, reverse=True)
+    directory = '*' if folder is None else folder
+    mp4list = sorted(glob(f'./video/{directory}/*.mp4'), key=getmtime, reverse=True)
     if len(mp4list) > 0:
         mp4 = mp4list[0]
 
@@ -104,7 +107,6 @@ def show_video_comparison(first_video: str, second_video: str) -> None:
 
     ipythondisplay.display(HTML(
         data='''
-
                 <table>
                     <thead>
                         <th style="text-align:center">Deep Q-Learning</th>
