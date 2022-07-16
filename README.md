@@ -1,7 +1,10 @@
 # Obligatorio - Taller Agentes Inteligentes 2022
 
 El objetivo es resolver el juego Pong de Atari utilizando Deep Q Learning y Double Deep Q Learning, comparando sus resultados y lograr que al menos uno de los algoritmos supere el puntaje 10 en el ambiente 'PongNoFrameskip-v4'.
-El objetivo del juego es lograr pasar la pelota a traves de la linea del oponente, y que esta no pase a traves de la propia.
+
+El objetivo del juego es lograr pasar la pelota a traves de la linea del oponente, y que esta no pase a traves de la propia:
+![image](https://github.com/fededemo/ObligatorioTallerIA/blob/main/assets/images/pong.jpg)
+
 El juego utilizado fue (https://www.gymlibrary.ml/environments/atari/pong/) que está programado como un ambiente de OpenAI Gym. 
 
 ## Comentarios y conclusiones
@@ -13,22 +16,22 @@ En particular para este tipo de problema cabe resaltar que el uso de una doble r
 Destacar que la solución presentada tiene algunas diferencias con respecto a otras que se pueden encontrar abiertamente ya que no hace uso dos redes neuronales: una red neuronal primaria y otra red neuronal objetivo, sino de una única red con lo que simplifica en parte la lógica del agente.
 
 En los experimentos realizados no se utilizó ninguna técnica de optimización de parámetros y simplemente nos limitamos a entrenar ambos agentes utilizando la misma configuración de parámetros la cual fue:
+- TOTAL_STEPS = 5000000
+- EPISODES = 10000
+- STEPS = 100000
 
-TOTAL_STEPS = 5000000
-EPISODES = 10000
-STEPS = 100000
+- EPSILON_INI = 1
+- EPSILON_MIN = 0.02
+- EPSILON_TIME = (EPSILON_INI - EPSILON_MIN) * TOTAL_STEPS
+- EPISODE_BLOCK = 10
+- USE_PRETRAINED = False
 
-EPSILON_INI = 1
-EPSILON_MIN = 0.02
-EPSILON_TIME = (EPSILON_INI - EPSILON_MIN) * TOTAL_STEPS
-EPISODE_BLOCK = 10
-USE_PRETRAINED = False
+- BATCH_SIZE = 32
+- BUFFER_SIZE = 10000
 
-BATCH_SIZE = 32
-BUFFER_SIZE = 10000
+- GAMMA = 0.99
+- LEARNING_RATE = 0.0001
 
-GAMMA = 0.99
-LEARNING_RATE = 0.0001
 
 Se realizaron varias modificaciones al código original en pos de considerar más y mejores prácticas de programación así como resolver algunos bugs que se detectaron durante el desarrollo de la solución.
 
