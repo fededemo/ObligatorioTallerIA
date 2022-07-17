@@ -14,14 +14,15 @@ El resultado final fue:
 
 - **Con Deep Q Learning:**
 
-https://user-images.githubusercontent.com/42256053/179368895-3717ae6d-ecd9-4a74-841a-d5304d280b9c.mp4
+![ezgif com-gif-maker-2](https://user-images.githubusercontent.com/42256053/179375657-dba47b43-385f-4594-8b29-612b1103bf14.gif)
 
 - **Con Double Deep Q Learning:**
 
-https://user-images.githubusercontent.com/42256053/179368925-da70c066-0255-4d2e-bb09-9c57baef4945.mp4
+![double ezgif com-gif-maker-2](https://user-images.githubusercontent.com/42256053/179375650-16a443fc-abb2-444a-8165-b1c136f8b45a.gif)
 
+Para este tipo de problema el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en la siguiente gráfica, esto no nos había ocurrido en experimentos anteriores realizados en prácticos, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal:
 
-En particular para este tipo de problema cabe resaltar que el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en las distintas gráficas, cosa que no había ocurrido en experimentos anteriores realizados en práctico, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal.
+<img width="891" alt="Screen Shot 2022-07-16 at 21 10 08" src="https://user-images.githubusercontent.com/42256053/179375721-32875639-98c8-4ae7-bef8-a3dc731ba4a7.png">
 
 Destacar que la solución presentada tiene algunas diferencias con respecto a otras que se pueden encontrar abiertamente ya que no hace uso dos redes neuronales: una red neuronal primaria y otra red neuronal objetivo, sino de una única red con lo que simplifica en parte la lógica del agente.
 
