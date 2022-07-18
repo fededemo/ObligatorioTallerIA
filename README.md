@@ -1,6 +1,6 @@
 # Obligatorio - Taller Agentes Inteligentes 2022
 
-El objetivo era resolver el juego Pong de Atari utilizando Deep Q Learning y Double Deep Q Learning, comparar los resultados y lograr que al menos uno de los algoritmos supere el puntaje 10 en un [ambiente](https://www.gymlibrary.ml/environments/atari/pong/) de OpenAI Gym ('PongNoFrameskip-v4').
+El objetivo era resolver el juego Pong de Atari utilizando [Deep Q Learning](https://arxiv.org/pdf/1312.5602.pdf) y [Double Deep Q Learning](https://arxiv.org/pdf/1509.06461.pdf), comparar los resultados y lograr que al menos uno de los algoritmos supere el puntaje 10 en un [ambiente de OpenAI Gym](https://www.gymlibrary.ml/environments/atari/pong/).
 
 El juego consiste en lograr pasar la pelota a traves de la linea del oponente, y que esta no pase a traves de la propia:
 
@@ -46,5 +46,4 @@ Se realizaron varias modificaciones al código original en pos de considerar má
 
 Notas:
 
-- Como no fue posible guardar todos los pesos intermedios dejamos los mismos disponibles en el github de la solución, el cual luego de la entrega quedará público para compartir y aportar material a la comunidad.
 - Recomendamos abrir la notebook a través de google colaboratory para que el contenido multimedia de la misma se muestre de forma apropiada, ya que al hacerlo de manera local los videos no se mostrarían correctamente. De todas formas dejamos una copia ya preparada a través del siguiente enlace
