@@ -20,7 +20,7 @@ El resultado final fue:
 
 ![double ezgif com-gif-maker-2](https://user-images.githubusercontent.com/42256053/179375650-16a443fc-abb2-444a-8165-b1c136f8b45a.gif)
 
-Para este tipo de problema el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en la Figura 1, esto no nos había ocurrido en experimentos anteriores realizados en prácticos, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal. Esto se debe al problema de *overstimation* de DQN mencionado por [van Hasselt, Guez, Silver (2015)](https://arxiv.org/pdf/1509.06461.pdf) donde se demuestra también que el mismo aumenta con el número total de acciones y esto concuerda con que el *#a* de los ejercicios de práctico era mucho menor (ej *Mountain Car*).
+Para este tipo de problema el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en la Figura 1, esto no nos había ocurrido en experimentos anteriores realizados en prácticos, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal. Esto se debe al problema de *overestimation* de DQN mencionado por [van Hasselt, Guez, Silver (2015)](https://arxiv.org/pdf/1509.06461.pdf) donde se demuestra también que el mismo aumenta con el número total de acciones y esto concuerda con que el *#a* de los ejercicios de práctico era mucho menor (ej *Mountain Car*).
 
 *_Figura 1_*:
 
