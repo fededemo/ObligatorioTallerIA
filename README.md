@@ -20,11 +20,16 @@ El resultado final fue:
 
 ![double ezgif com-gif-maker-2](https://user-images.githubusercontent.com/42256053/179375650-16a443fc-abb2-444a-8165-b1c136f8b45a.gif)
 
-Para este tipo de problema el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en la siguiente gráfica, esto no nos había ocurrido en experimentos anteriores realizados en prácticos, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal:
+Para este tipo de problema el uso de una doble red neuronal dio mejores resultados como se pueden apreciar en la Figura 1, esto no nos había ocurrido en experimentos anteriores realizados en prácticos, como es el caso de Diferencias Temporales, donde habían sido siempre subperformantes respecto al uso de una red neuronal. Esto se debe al problema de *overstimation* de DQN mencionado por [van Hasselt, Guez, Silver (2015)](https://arxiv.org/pdf/1509.06461.pdf) donde se demuestra también que el mismo aumenta con el número total de acciones y esto concuerda con que el *#a* de los ejercicios de práctico era mucho menor (ej *Mountain Car*).
+
+*_Figura 1_*:
 
 <img width="891" alt="Screen Shot 2022-07-16 at 21 10 08" src="https://user-images.githubusercontent.com/42256053/179375721-32875639-98c8-4ae7-bef8-a3dc731ba4a7.png">
 
-Destacar que la solución presentada tiene algunas diferencias con respecto a otras que se pueden encontrar abiertamente ya que no hace uso dos redes neuronales: una red neuronal primaria y otra red neuronal objetivo, sino de una única red con lo que simplifica en parte la lógica del agente.
+El mejor desempeño obtenido con Double DQN sobre DQN concuerda con el visto por [van Hasselt, Guez, Silver (2015)](https://arxiv.org/pdf/1509.06461.pdf) para el juego Pong donde la reward con DQN fue: 18.90 y con Double DQN fue: 21. 
+
+
+Destacar que la solución presentada tiene algunas diferencias con respecto a otras que se pueden encontrar abiertamente (ej [DQN Experiment with Atari Breakout](https://nn.labml.ai/rl/dqn/experiment.html)) ya que no hace uso dos redes neuronales: una red neuronal primaria y otra red neuronal objetivo, sino de una única red con lo que simplifica en parte la lógica del agente.
 
 En los experimentos realizados no se utilizó ninguna técnica de optimización de parámetros y simplemente nos limitamos a entrenar ambos agentes utilizando la misma configuración de parámetros la cual fue:
 
